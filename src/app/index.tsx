@@ -1,10 +1,16 @@
-import { Link } from "expo-router";
-import React, { useState } from "react";
-import { Text, View, ScrollView } from "react-native";
+//import { Link } from "expo-router";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Text,
+  View,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ChatInput from "../components/ChatInput";
-import { Stack } from "expo-router";
-import { useColorScheme } from "react-native";
+//import { Stack } from "expo-router";
 
 interface Message {
   id: string;
@@ -47,77 +53,124 @@ export default function Page() {
       setIsLoading(false);
     }, 1500);
   };
-  let colorScheme = useColorScheme();
 
   return (
-    <View
-      className="flex flex-1"
-      style={{
-        backgroundColor: colorScheme === "dark" ? "#121212" : "#fff",
-      }}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex flex-1 bg-gray-200"
     >
       <Header />
-      <Content messages={messages} colorScheme={colorScheme} />
+      <Content messages={messages} />
       <Footer handleSendMessage={handleSendMessage} />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
-function Content({
-  messages,
-  colorScheme,
-}: {
-  messages: Message[];
-  colorScheme: string;
-}) {
+function Content({ messages }: { messages: Message[] }) {
+  const scrollViewRef = useRef<ScrollView>(null);
+  const previousMessageCount = useRef(messages.length);
+  const screenHeight = Dimensions.get("window").height;
+  const maxMessageHeight = screenHeight * 0.8;
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(
+    new Set(),
+  );
+
+  // Scroll to bottom when new message arrives
+  useEffect(() => {
+    if (messages.length > previousMessageCount.current) {
+      const newestMessage = messages[messages.length - 1];
+      const isLongMessage = newestMessage.text.length > 200;
+
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+
+        // After scrolling, expand long messages
+        if (isLongMessage) {
+          setTimeout(() => {
+            setExpandedMessages((prev) => new Set(prev).add(newestMessage.id));
+          }, 600); // Wait for scroll animation to complete
+        }
+      }, 100);
+    }
+    previousMessageCount.current = messages.length;
+  }, [messages]);
+
   return (
     <View className="flex-1">
       <ScrollView
+        ref={scrollViewRef}
         className="flex-1 p-4"
         contentContainerStyle={{
           paddingBottom: 20,
-          backgroundColor: colorScheme === "dark" ? "#121212" : "#fff",
         }}
       >
-        {messages.map((message) => (
-          <View
-            key={message.id}
-            className={`mb-4 max-w-[80%] rounded-2xl p-3 ${
-              message.isUser ? "bg-blue-500 self-end" : "bg-gray-200 self-start"
-            }`}
-          >
-            <Text
-              className={`text-base ${
-                message.isUser ? "text-white" : "text-gray-800"
+        {messages.map((message) => {
+          const isLongMessage = message.text.length > 200;
+          const isExpanded = expandedMessages.has(message.id);
+
+          if (isLongMessage && !isExpanded) {
+            // Show placeholder with fixed height during scroll
+            return (
+              <View
+                key={message.id}
+                className={`mb-4 max-w-[80%] rounded-2xl ${
+                  message.isUser
+                    ? "bg-blue-500 self-end"
+                    : "bg-gray-100 self-start"
+                }`}
+                style={{ height: maxMessageHeight }}
+              >
+                <ScrollView
+                  className="p-3"
+                  showsVerticalScrollIndicator={true}
+                  nestedScrollEnabled={true}
+                >
+                  <Text
+                    className={`text-sm ${
+                      message.isUser ? "text-white" : "text-gray-800"
+                    }`}
+                  >
+                    {message.text}
+                  </Text>
+                </ScrollView>
+              </View>
+            );
+          }
+
+          return (
+            <View
+              key={message.id}
+              className={`mb-4 max-w-[80%] rounded-2xl ${
+                message.isUser
+                  ? "bg-blue-500 self-end"
+                  : "bg-gray-100 self-start"
               }`}
             >
-              {message.text}
-            </Text>
-          </View>
-        ))}
+              {isLongMessage ? (
+                // Expanded long message - no height constraint
+                <View className="p-3">
+                  <Text
+                    className={`text-sm ${
+                      message.isUser ? "text-white" : "text-gray-800"
+                    }`}
+                  >
+                    {message.text}
+                  </Text>
+                </View>
+              ) : (
+                // Short message
+                <Text
+                  className={`text-sm p-3 ${
+                    message.isUser ? "text-white" : "text-gray-800"
+                  }`}
+                >
+                  {message.text}
+                </Text>
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
-      <View className="py-12 md:py-24 lg:py-32 xl:py-48 absolute">
-        <View className="px-4 md:px-6">
-          <View className="flex flex-col items-center gap-4 text-center">
-            <Text
-              role="heading"
-              className="text-3xl text-center native:text-5xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl"
-            >
-              Welcome to Project ACME {colorScheme}
-            </Text>
-            <Text className="mx-auto max-w-[700px] text-lg text-center text-gray-500 md:text-xl dark:text-gray-400">
-              Discover and collaborate on acme. Explore our services now.
-            </Text>
-            <Link
-              suppressHighlighting
-              className="flex h-9 items-center justify-center overflow-hidden rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-gray-50 web:shadow ios:shadow transition-colors hover:bg-gray-900/90 active:bg-gray-400/90 web:focus-visible:outline-none web:focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
-              href="/chat"
-            >
-              Explore
-            </Link>
-          </View>
-        </View>
-      </View>
     </View>
   );
 }
