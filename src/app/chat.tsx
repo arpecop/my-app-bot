@@ -2,7 +2,6 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack } from "expo-router";
-import { ChatInputExample } from "../components";
 
 export default function ChatScreen() {
   return (
@@ -17,7 +16,6 @@ export default function ChatScreen() {
           headerShadowVisible: false,
         }}
       />
-      <ChatInputExample />
     </SafeAreaView>
   );
 }
