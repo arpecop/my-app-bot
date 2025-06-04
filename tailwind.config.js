@@ -1,9 +1,16 @@
 /** @type {import('tailwindcss').Config} */
+
+
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      fontSize: {
+           // Define your responsive font sizes
+
+
+         },
       colors: {
               // --- Apple Inspired Dark Theme ---
               'apple-dark-elevated': '#1C1C1E',    // Elevated Platter, Menus (System Gray 6 Dark)

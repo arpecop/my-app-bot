@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { View, getScaledValue } from "./native";
 import {
-    View,
     TextInput,
     TouchableOpacity,
     ActivityIndicator,
@@ -27,7 +27,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     const animatedValue = useRef(new Animated.Value(100)).current;
 
     // Approximate height for 5 lines (base font size * line height * lines + padding)
-    const maxInputHeight = 16 * 1.2 * 5 + 16; // ~112px
+    const maxInputHeight = getScaledValue(15) * 1.2 * 5 + getScaledValue(15); // ~112px
 
     useEffect(() => {
         // Animate the input sliding up when component mounts
@@ -78,21 +78,21 @@ const ChatInput: React.FC<ChatInputProps> = ({
             style={{
                 transform: [{ translateY: animatedValue }],
             }}
-            className="px-4 py-2 bg-black -mt-12"
+            className={[focused ? "p-0" : "px-2 py-2"].join(" ")}
         >
             <View
                 className={[
                     "flex-row items-center bg-gray-100 dark:bg-apple-dark-grouped px-4 border-[0.5px] relative",
-                    hasNewlines ? "rounded-md" : "rounded-full",
+
                     focused
-                        ? "border-blue-500"
+                        ? "border-transparent round"
                         : "border-gray-300 dark:border-gray-600",
                 ].join(" ")}
             >
                 <TextInput
                     className={[
-                        `flex-1 py-2 text-base text-transparent`,
-                        focused ? "pt-2" : "pt-2",
+                        `flex-1 text-base text-gray-900 dark:text-gray-100 bg-white`,
+                        focused ? "pt-0" : "pt-2",
                     ].join(" ")}
                     value={message}
                     onChangeText={handleTextChange}
@@ -102,6 +102,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                     maxLength={1000}
                     editable={!isLoading}
                     style={{
+                        fontSize: getScaledValue(15),
                         maxHeight: maxInputHeight,
                         textAlignVertical: "top", // Align text to top for multiline
                     }}

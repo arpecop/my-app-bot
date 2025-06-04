@@ -44,6 +44,9 @@ importers:
       react-native-reanimated:
         specifier: ~3.17.4
         version: 3.17.5(@babel/core@7.27.3)(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
+      react-native-responsive-fontsize:
+        specifier: ^0.5.1
+        version: 0.5.1(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0))
       react-native-safe-area-context:
         specifier: 5.3.0
         version: 5.3.0(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
@@ -2521,6 +2524,11 @@ packages:
       react: '*'
       react-native: '*'
 
+  react-native-iphone-x-helper@1.3.1:
+    resolution: {integrity: sha512-HOf0jzRnq2/aFUcdCJ9w9JGzN3gdEg0zFE4FyYlp4jtidqU03D5X7ZegGKfT1EWteR0gPBGp9ye5T5FvSWi9Yg==}
+    peerDependencies:
+      react-native: '>=0.42.0'
+
   react-native-is-edge-to-edge@1.1.7:
     resolution: {integrity: sha512-EH6i7E8epJGIcu7KpfXYXiV2JFIYITtq+rVS8uEb+92naMRBdxhTuS8Wn2Q7j9sqyO0B+Xbaaf9VdipIAmGW4w==}
     peerDependencies:
@@ -2533,6 +2541,11 @@ packages:
       '@babel/core': ^7.0.0-0
       react: '*'
       react-native: '*'
+
+  react-native-responsive-fontsize@0.5.1:
+    resolution: {integrity: sha512-G77iPzrf3BHxMxVm6G3Mw3vPImIdq+jLLXhYoOjWei6i9J3/jzUNUhNdRWvp49Csb5prhbVBLPM+pYZz+b3ESQ==}
+    peerDependencies:
+      react-native: '>=0.42.0'
 
   react-native-safe-area-context@5.3.0:
     resolution: {integrity: sha512-glV9bwuozTjf/JDBIBm+ITnukHNaUT3nucgdeADwjtHsfEN3RL5UO6nq99vvdWv5j/O9yCZBvFncM1BBQ+UvpQ==}
@@ -6069,6 +6082,10 @@ snapshots:
       react: 19.0.0
       react-native: 0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0)
 
+  react-native-iphone-x-helper@1.3.1(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0)):
+    dependencies:
+      react-native: 0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0)
+
   react-native-is-edge-to-edge@1.1.7(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:
       react: 19.0.0
@@ -6093,6 +6110,11 @@ snapshots:
       react-native-is-edge-to-edge: 1.1.7(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
     transitivePeerDependencies:
       - supports-color
+
+  react-native-responsive-fontsize@0.5.1(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0)):
+    dependencies:
+      react-native: 0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0)
+      react-native-iphone-x-helper: 1.3.1(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0))
 
   react-native-safe-area-context@5.3.0(react-native@0.79.1(@babel/core@7.27.3)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0):
     dependencies:

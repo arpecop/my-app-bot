@@ -1,8 +1,7 @@
 //import { Link } from "expo-router";
 import React, { useState, useEffect, useRef } from "react";
+import { View, Text } from "../components/native";
 import {
-    Text,
-    View,
     ScrollView,
     KeyboardAvoidingView,
     Keyboard,
@@ -69,11 +68,14 @@ export default function Page() {
     //height
     return (
         <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            behavior={Platform.OS === "ios" ? "padding" : "padding"}
             className="flex flex-1 bg-gray-200 dark:bg-gray-800"
         >
             <Header />
             <Content messages={messages} />
+            <Text className="text-center responsive-lg text-gray-500 dark:text-gray-400">
+                dasds
+            </Text>
             <Footer handleSendMessage={handleSendMessage} focused={focused} />
         </KeyboardAvoidingView>
     );
@@ -166,6 +168,7 @@ function Content({ messages }: { messages: Message[] }) {
                                 // Expanded long message - no height constraint
                                 <View className="p-3">
                                     <Text
+                                        fontSize={14}
                                         className={`text-sm ${
                                             message.isUser
                                                 ? "text-white"
@@ -178,6 +181,7 @@ function Content({ messages }: { messages: Message[] }) {
                             ) : (
                                 // Short message
                                 <Text
+                                    fontSize={14}
                                     className={`text-sm p-3 ${
                                         message.isUser
                                             ? "text-white"
@@ -197,7 +201,7 @@ function Content({ messages }: { messages: Message[] }) {
 
 function Header() {
     const { top } = useSafeAreaInsets();
-    return <View style={{ paddingTop: top }}></View>;
+    return <View style={{ paddingTop: top }} className="" />;
 }
 
 function Footer({

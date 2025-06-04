@@ -3,12 +3,6 @@
         "scheme": "acme",
         "userInterfaceStyle": "automatic",
         "orientation": "default",
-        "android": {
-            "softwareKeyboardLayoutMode": "pan"
-        },
-        "web": {
-            "output": "static"
-        },
         "plugins": [
             [
                 "expo-router",
