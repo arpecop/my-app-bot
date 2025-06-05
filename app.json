@@ -1,17 +1,17 @@
 {
-    "expo": {
-        "scheme": "acme",
-        "userInterfaceStyle": "automatic",
-        "orientation": "default",
-        "plugins": [
-            [
-                "expo-router",
-                {
-                    "origin": "https://n"
-                }
-            ]
-        ],
-        "name": "my-app",
-        "slug": "my-app"
-    }
+  "expo": {
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "android": {
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.anonymous.myapp"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser"
+    ],
+    "name": "myapp",
+    "slug": "myapp"
+  }
 }

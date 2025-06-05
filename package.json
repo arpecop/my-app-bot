@@ -5,12 +5,13 @@
   "scripts": {
     "dev": "expo start && expo start --ios",
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "deploy": "npx expo export -p web && npx eas-cli@latest deploy"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.2",
     "expo": "^53.0.4",
     "expo-constants": "~17.1.4",
     "expo-linking": "~7.1.4",
@@ -18,6 +19,7 @@
     "expo-splash-screen": "~0.30.7",
     "expo-status-bar": "~2.2.3",
     "expo-system-ui": "~5.0.7",
+    "expo-web-browser": "~14.1.6",
     "nativewind": "^4.0.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",

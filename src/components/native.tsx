@@ -1,5 +1,10 @@
 import React from "react";
-import { Text as Text1, View as View1, Dimensions } from "react-native";
+import {
+    Text as Text1,
+    View as View1,
+    TouchableOpacity as TouchableOpacity1,
+    Dimensions,
+} from "react-native";
 
 export const getScaledValue = (baseInteger: number) => {
     if (typeof baseInteger !== "number") {
@@ -45,12 +50,16 @@ export const View = ({
     style,
     className,
     children,
+    padding,
+    margin,
     ...rest
 }: {
     width?: number;
     height?: number;
     className?: string;
     style?: any;
+    padding?: number[];
+    margin?: number[];
     children?: any;
 }) => {
     const scaledWidth = getScaledValue(width);
@@ -65,10 +74,88 @@ export const View = ({
                     width: scaledWidth,
                     height: scaledHeight,
                 },
+                padding
+                    ? {
+                          paddingTop: getScaledValue(padding[0]),
+                          paddingRight: getScaledValue(padding[1]),
+                          paddingBottom: getScaledValue(padding[2]),
+                          paddingLeft: getScaledValue(padding[3]),
+                      }
+                    : { padding: 0 },
+                margin
+                    ? {
+                          marginTop: getScaledValue(margin[0]),
+                          marginRight: getScaledValue(margin[1]),
+                          marginBottom: getScaledValue(margin[2]),
+                          marginLeft: getScaledValue(margin[3]),
+                      }
+                    : { margin: 0 },
             ]}
             {...rest}
         >
             {children}
         </View1>
+    );
+};
+
+export const TouchableOpacity = ({
+    width,
+    height,
+    style,
+    className,
+    children,
+    disabled,
+    padding,
+    activeOpacity,
+    onPress,
+    margin,
+    ...rest
+}: {
+    width?: number;
+    onPress?: () => void;
+    height?: number;
+    className?: string;
+    style?: any;
+    disabled?: boolean;
+    padding?: number[];
+    activeOpacity?: number;
+    margin?: number[];
+    children?: any;
+}) => {
+    const scaledWidth = getScaledValue(width);
+    const scaledHeight = getScaledValue(height);
+
+    return (
+        <TouchableOpacity
+            disabled={false}
+            onPress={onPress}
+            className={className}
+            style={[
+                style,
+                {
+                    width: scaledWidth,
+                    height: scaledHeight,
+                },
+                padding
+                    ? {
+                          paddingTop: getScaledValue(padding[0]),
+                          paddingRight: getScaledValue(padding[1]),
+                          paddingBottom: getScaledValue(padding[2]),
+                          paddingLeft: getScaledValue(padding[3]),
+                      }
+                    : { padding: 0 },
+                margin
+                    ? {
+                          marginTop: getScaledValue(margin[0]),
+                          marginRight: getScaledValue(margin[1]),
+                          marginBottom: getScaledValue(margin[2]),
+                          marginLeft: getScaledValue(margin[3]),
+                      }
+                    : { margin: 0 },
+            ]}
+            {...rest}
+        >
+            {children}
+        </TouchableOpacity>
     );
 };

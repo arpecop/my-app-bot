@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { View, getScaledValue } from "./native";
 import {
     TextInput,
-    TouchableOpacity,
     ActivityIndicator,
+    TouchableOpacity,
     Keyboard,
     Animated,
 } from "react-native";
@@ -25,8 +25,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
     const [message, setMessage] = useState("");
     const [hasNewlines, setHasNewlines] = useState(false);
     const animatedValue = useRef(new Animated.Value(100)).current;
-
-    // Approximate height for 5 lines (base font size * line height * lines + padding)
     const maxInputHeight = getScaledValue(15) * 1.2 * 5 + getScaledValue(15); // ~112px
 
     useEffect(() => {
@@ -46,7 +44,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
         const hasActualNewlines = text.includes("\n");
         const charactersPerLine = 35; // Approximate characters that fit in one line
         const hasLongText = text.length > charactersPerLine;
-
         setHasNewlines(hasActualNewlines || hasLongText);
     };
 
@@ -71,6 +68,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             setHasNewlines(false); // Reset state
             Keyboard.dismiss();
         }
+        setMessage("");
     };
 
     return (
@@ -78,63 +76,78 @@ const ChatInput: React.FC<ChatInputProps> = ({
             style={{
                 transform: [{ translateY: animatedValue }],
             }}
-            className={[focused ? "p-0" : "px-2 py-2"].join(" ")}
         >
             <View
+                margin={focused ? [0, 0, 0, 0] : [0, 30, 20, 30]}
                 className={[
-                    "flex-row items-center bg-gray-100 dark:bg-apple-dark-grouped px-4 border-[0.5px] relative",
-
+                    "dark:bg-apple-dark-grouped  bg-gray-100",
                     focused
-                        ? "border-transparent round"
-                        : "border-gray-300 dark:border-gray-600",
+                        ? "rounded-none overflow-hidden"
+                        : "overflow-hidden rounded-full",
                 ].join(" ")}
             >
-                <TextInput
-                    className={[
-                        `flex-1 text-base text-gray-900 dark:text-gray-100 bg-white`,
-                        focused ? "pt-0" : "pt-2",
-                    ].join(" ")}
-                    value={message}
-                    onChangeText={handleTextChange}
-                    placeholder={placeholder}
-                    placeholderTextColor="#9CA3AF"
-                    multiline
-                    maxLength={1000}
-                    editable={!isLoading}
+                <View
+                    className={["flex-row items-center  relative"].join(" ")}
                     style={{
-                        fontSize: getScaledValue(15),
-                        maxHeight: maxInputHeight,
-                        textAlignVertical: "top", // Align text to top for multiline
-                    }}
-                />
-                <TouchableOpacity
-                    onPress={handleSend}
-                    disabled={isLoading || !message.trim()}
-                    className={`rounded-full p-2 absolute right-0 ${
-                        message.trim() && !isLoading
-                            ? `${
-                                  hasNewlines
-                                      ? "rounded-md"
-                                      : "rounded-full bg-blue-500"
-                              }`
-                            : "bg-gray-300 dark:bg-slate-800"
-                    }`}
-                    activeOpacity={0.5}
-                    style={{
-                        elevation: 2,
-                        alignSelf: hasNewlines ? "flex-end" : "center", // Position button appropriately
+                        padding: focused ? 0 : 0,
                     }}
                 >
-                    {isLoading ? (
-                        <ActivityIndicator color="#FFFFFF" size="small" />
-                    ) : (
-                        <Ionicons
-                            name="send"
-                            size={20}
-                            color={message.trim() ? "#FFFFFF" : "#9CA3AF"}
-                        />
-                    )}
-                </TouchableOpacity>
+                    <TextInput
+                        className={[
+                            `flex-1 text-gray-900 dark:text-gray-100  bg-gray-100 dark:bg-apple-dark-grouped`,
+                        ].join(" ")}
+                        value={message}
+                        onChangeText={handleTextChange}
+                        placeholder={placeholder}
+                        placeholderTextColor="#9CA3AF"
+                        multiline
+                        maxLength={1000}
+                        editable={!isLoading}
+                        style={{
+                            fontSize: getScaledValue(14),
+                            padding: getScaledValue(14),
+                            maxHeight: maxInputHeight,
+                            textAlignVertical: "top", // Align text to top for multiline
+                        }}
+                    />
+                    <TouchableOpacity
+                        onPress={handleSend}
+                        disabled={isLoading || !message.trim()}
+                        activeOpacity={0.5}
+                    >
+                        <View
+                            padding={[10, 10, 10, 10]}
+                            className={`rounded-full  ${
+                                message.trim() && !isLoading
+                                    ? `${
+                                          hasNewlines
+                                              ? "rounded-md"
+                                              : "rounded-full bg-blue-500"
+                                      }`
+                                    : ""
+                            }`}
+                            style={{
+                                elevation: 2,
+                                alignSelf: hasNewlines ? "flex-end" : "center", // Position button appropriately
+                            }}
+                        >
+                            {isLoading ? (
+                                <ActivityIndicator
+                                    color="#FFFFFF"
+                                    size="small"
+                                />
+                            ) : (
+                                <Ionicons
+                                    name="send"
+                                    size={20}
+                                    color={
+                                        message.trim() ? "#FFFFFF" : "#9CA3AF"
+                                    }
+                                />
+                            )}
+                        </View>
+                    </TouchableOpacity>
+                </View>
             </View>
         </Animated.View>
     );
