@@ -5,13 +5,22 @@
     "orientation": "default",
     "android": {
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.anonymous.myapp"
+      "package": "com.rudixlab.myapp"
     },
     "plugins": [
       "expo-router",
       "expo-web-browser"
     ],
     "name": "myapp",
-    "slug": "myapp"
+    "slug": "myapp",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "46c83efc-b440-4b90-9c1e-5b01dc9bad1f"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.rudixlab.myapp"
+    }
   }
 }
