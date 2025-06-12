@@ -1,41 +1,37 @@
 {
-    "expo": {
-        "scheme": "bitpazar",
-        "icon": "./assets/icon.png",
-        "userInterfaceStyle": "automatic",
-        "orientation": "default",
-        "android": {
-            "softwareKeyboardLayoutMode": "pan",
-            "package": "com.rudixlab.bitpazar"
-        },
-        "plugins": [
-            "expo-router",
-            "expo-web-browser",
-            "expo-splash-screen",
-            {
-                "backgroundColor": "#232323",
-                "image": "./assets/icon.png",
-                "dark": {
-                    "image": "./assets/icon.png",
-                    "backgroundColor": "#000000"
-                },
-                "imageWidth": 200
-            }
-        ],
-        "name": "bitpazar",
-        "slug": "bitpazar",
-        "extra": {
-            "router": {},
-            "eas": {
-                "projectId": "529b2da4-42ac-4fce-ba62-12a2749d9f66"
-            }
-        },
-        "ios": {
-            "bundleIdentifier": "com.rudixlab.bitpazar"
-        },
-        "web": {
-            "bundler": "metro"
-        },
-        "owner": "arpecop"
-    }
+  "expo": {
+    "scheme": "bitpazar",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "android": {
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.rudixlab.bitpazar"
+    },
+    "plugins": ["expo-router", "expo-web-browser", "expo-splash-screen"],
+    "name": "bitpazar",
+    "slug": "bitpazar",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#232323",
+      "dark": {
+        "image": "./assets/icon.png",
+        "backgroundColor": "#000000"
+      }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "529b2da4-42ac-4fce-ba62-12a2749d9f66"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.rudixlab.bitpazar"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "owner": "arpecop"
+  }
 }
