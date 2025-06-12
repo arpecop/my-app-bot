@@ -10,7 +10,7 @@ import {
     Alert,
     Dimensions,
     Linking,
-} from "react-native"; // <-- Add Linking
+} from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as WebBrowser from "expo-web-browser";
@@ -19,14 +19,25 @@ const { height: deviceHeight, width: deviceWidth } = Dimensions.get("window");
 const MIN_PASSWORD_LENGTH = 6;
 
 // Helper to parse URL query parameters (for demonstration)
-const parseUrlParams = (url) => {
+const parseUrlParams = (url: string): Record<string, string> => {
     const queryString = url.split("?")[1];
-    if (!queryString) return {};
-    return queryString.split("&").reduce((acc, pair) => {
-        const [key, value] = pair.split("=");
-        acc[key] = decodeURIComponent(value || "");
-        return acc;
-    }, {});
+
+    if (!queryString) {
+        return {};
+    }
+
+    return queryString.split("&").reduce(
+        (acc, pair) => {
+            const [key, value] = pair.split("=");
+
+            if (key) {
+                acc[key] = decodeURIComponent(value || "");
+            }
+
+            return acc;
+        },
+        {} as Record<string, string>,
+    );
 };
 
 export default function AuthScreen() {
@@ -36,7 +47,8 @@ export default function AuthScreen() {
     const [username, setUsername] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
-    const scrollViewRef = useRef(null);
+    // Explicitly type the useRef hook for ScrollView
+    const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
 
     // --- AsyncStorage Helper Functions ---
@@ -50,7 +62,11 @@ export default function AuthScreen() {
         }
     };
 
-    const saveUser = async (newUser) => {
+    const saveUser = async (newUser: {
+        username: string;
+        password: string;
+        email: string;
+    }) => {
         try {
             const existingUsers = await getRegisteredUsers();
             const updatedUsers = [...existingUsers, newUser];
@@ -65,7 +81,8 @@ export default function AuthScreen() {
     // --- End AsyncStorage Helper Functions ---
 
     const scrollToLogin = () => {
-        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        // Use 'x' for horizontal scrolling
+        scrollViewRef.current?.scrollTo({ x: 0, animated: true });
         setIsLogin(true);
         setErrorMessage("");
         setUsername("");
@@ -73,7 +90,8 @@ export default function AuthScreen() {
     };
 
     const scrollToRegister = () => {
-        scrollViewRef.current?.scrollTo({ y: deviceHeight, animated: true });
+        // Use 'x' for horizontal scrolling
+        scrollViewRef.current?.scrollTo({ x: deviceWidth, animated: true });
         setIsLogin(false);
         setErrorMessage("");
         setEmail("");
@@ -87,7 +105,7 @@ export default function AuthScreen() {
 
         if (isLogin) {
             const foundUser = storedUsers.find(
-                (u) => u.email === email && u.password === password,
+                (u: any) => u.email === email && u.password === password,
             );
 
             if (foundUser) {
@@ -109,7 +127,7 @@ export default function AuthScreen() {
             }
 
             const usernameExists = storedUsers.some(
-                (u) => u.username === username,
+                (u: any) => u.username === username,
             );
             if (usernameExists) {
                 setErrorMessage(
@@ -139,7 +157,7 @@ export default function AuthScreen() {
         setErrorMessage("");
 
         const authUrl = "https://userz.net/auth/google";
-        const redirectUrl = "myapp://auth/callback";
+        const redirectUrl = "bitpazar://auth/callback";
 
         let result;
         try {
@@ -147,7 +165,7 @@ export default function AuthScreen() {
                 authUrl,
                 redirectUrl,
             );
-        } catch (error) {
+        } catch (error: any) {
             console.error("WebBrowser error:", error);
             setErrorMessage(
                 "Could not open browser for Google login. Please try again.",
@@ -189,16 +207,12 @@ export default function AuthScreen() {
     };
 
     const handleDeepLinkChat = async () => {
-        const deepLinkUrl = "myapp://chat";
+        const deepLinkUrl = "bitpazar://chat";
         console.log("Attempting to open deep link:", deepLinkUrl);
         try {
             const supported = await Linking.canOpenURL(deepLinkUrl);
             if (supported) {
                 await Linking.openURL(deepLinkUrl);
-                Alert.alert(
-                    "Deep Link Initiated",
-                    `Attempted to open: ${deepLinkUrl}`,
-                );
             } else {
                 Alert.alert(
                     "Deep Link Not Supported",
@@ -209,7 +223,7 @@ export default function AuthScreen() {
                     deepLinkUrl,
                 );
             }
-        } catch (error) {
+        } catch (error: any) {
             Alert.alert(
                 "Deep Link Error",
                 `Failed to open deep link: ${error.message}`,
@@ -217,28 +231,28 @@ export default function AuthScreen() {
             console.error("Error opening deep link:", error);
         }
     };
-    // --- END NEW BUTTON HANDLERS ---
 
     return (
-        <View className="flex-1 bg-gray-100">
+        <View className="flex-1 bg-gray-200 dark:bg-gray-900">
             <StatusBar style="auto" />
             <ScrollView
                 ref={scrollViewRef}
+                horizontal={true} // Enable horizontal scrolling
                 scrollEnabled={false}
                 pagingEnabled={true}
-                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false} // Hide vertical scroll indicator
                 className="flex-1"
+                contentContainerStyle={{ flexDirection: "row" }} // Arrange sections next to each other
             >
                 {/* Login Section */}
                 <View
-                    className="flex-1 items-center justify-center p-4 bg-gray-100"
+                    className="flex-1 items-center justify-center"
                     style={{ height: deviceHeight, width: deviceWidth }}
                 >
-                    <View className="w-full max-w-sm bg-white p-6 rounded-lg shadow-md">
-                        <Text className="text-3xl font-bold text-center mb-6 text-gray-800">
+                    <View className="w-full max-w-sm  p-6 rounded-lg shadow-md">
+                        <Text className="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-200">
                             Login
                         </Text>
-
                         <TextInput
                             className="w-full p-3 mb-4 border border-gray-300 rounded-md text-base"
                             placeholder="Email (e.g., your_username@app.com)"
@@ -249,7 +263,6 @@ export default function AuthScreen() {
                             autoComplete="off"
                             textContentType="none"
                         />
-
                         <TextInput
                             className="w-full p-3 mb-6 border border-gray-300 rounded-md text-base"
                             placeholder="Password"
@@ -320,11 +333,11 @@ export default function AuthScreen() {
 
                 {/* Register Section */}
                 <View
-                    className="flex-1 items-center justify-center p-4 bg-gray-100"
+                    className="flex-1 items-center justify-center"
                     style={{ height: deviceHeight, width: deviceWidth }}
                 >
                     <View className="w-full max-w-sm bg-white p-6 rounded-lg shadow-md">
-                        <Text className="text-3xl font-bold text-center mb-6 text-gray-800">
+                        <Text className="text-3xl font-bold text-center mb-6 text-gray-200 dark:text-gray-800">
                             Register
                         </Text>
 
@@ -358,7 +371,7 @@ export default function AuthScreen() {
                             className="w-full bg-blue-600 p-3 rounded-md mb-4"
                             onPress={handleAuth}
                         >
-                            <Text className="text-white text-center font-semibold text-lg">
+                            <Text className="text-white text-center font-bold">
                                 Register
                             </Text>
                         </TouchableOpacity>

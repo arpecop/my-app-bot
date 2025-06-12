@@ -1,26 +1,41 @@
 {
-  "expo": {
-    "scheme": "myapp",
-    "userInterfaceStyle": "automatic",
-    "orientation": "default",
-    "android": {
-      "softwareKeyboardLayoutMode": "pan",
-      "package": "com.rudixlab.myapp"
-    },
-    "plugins": [
-      "expo-router",
-      "expo-web-browser"
-    ],
-    "name": "myapp",
-    "slug": "myapp",
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "46c83efc-b440-4b90-9c1e-5b01dc9bad1f"
-      }
-    },
-    "ios": {
-      "bundleIdentifier": "com.rudixlab.myapp"
+    "expo": {
+        "scheme": "bitpazar",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "automatic",
+        "orientation": "default",
+        "android": {
+            "softwareKeyboardLayoutMode": "pan",
+            "package": "com.rudixlab.bitpazar"
+        },
+        "plugins": [
+            "expo-router",
+            "expo-web-browser",
+            "expo-splash-screen",
+            {
+                "backgroundColor": "#232323",
+                "image": "./assets/icon.png",
+                "dark": {
+                    "image": "./assets/icon.png",
+                    "backgroundColor": "#000000"
+                },
+                "imageWidth": 200
+            }
+        ],
+        "name": "bitpazar",
+        "slug": "bitpazar",
+        "extra": {
+            "router": {},
+            "eas": {
+                "projectId": "529b2da4-42ac-4fce-ba62-12a2749d9f66"
+            }
+        },
+        "ios": {
+            "bundleIdentifier": "com.rudixlab.bitpazar"
+        },
+        "web": {
+            "bundler": "metro"
+        },
+        "owner": "arpecop"
     }
-  }
 }

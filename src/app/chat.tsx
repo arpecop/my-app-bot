@@ -1,5 +1,6 @@
 //import { Link } from "expo-router";
 import React, { useState, useEffect, useRef } from "react";
+import { StatusBar } from "expo-status-bar";
 import { View, Text } from "../components/native";
 import {
     ScrollView,
@@ -8,7 +9,7 @@ import {
     Dimensions,
     Platform,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import ChatInput from "../components/ChatInput";
 
 interface Message {
@@ -35,18 +36,14 @@ export default function Page() {
             text,
             isUser: true,
         };
-
         setMessages((prevMessages) => [...prevMessages, userMessage]);
-
         setIsLoading(true);
-
         setTimeout(() => {
             const botMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 text: `I received your message: "${text}"`,
                 isUser: false,
             };
-
             setMessages((prevMessages) => [...prevMessages, botMessage]);
             setIsLoading(false);
         }, 1500);
@@ -59,7 +56,6 @@ export default function Page() {
         const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
             setFocused(false);
         });
-
         return () => {
             showSubscription.remove();
             hideSubscription.remove();
@@ -67,14 +63,20 @@ export default function Page() {
     }, []);
     //height
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            className="flex flex-1 bg-gray-200 dark:bg-gray-800"
-        >
-            <Header />
-            <Content messages={messages} />
-            <Footer handleSendMessage={handleSendMessage} focused={focused} />
-        </KeyboardAvoidingView>
+        <View className="flex-1">
+            <StatusBar style="auto" />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                className="flex flex-1 bg-gray-200 dark:bg-gray-900"
+            >
+                <Header />
+                <Content messages={messages} />
+                <Footer
+                    handleSendMessage={handleSendMessage}
+                    focused={focused}
+                />
+            </KeyboardAvoidingView>
+        </View>
     );
 }
 
@@ -92,7 +94,6 @@ function Content({ messages }: { messages: Message[] }) {
         if (messages.length > previousMessageCount.current) {
             const newestMessage = messages[messages.length - 1];
             const isLongMessage = newestMessage.text.length > 200;
-
             setTimeout(() => {
                 scrollViewRef.current?.scrollToEnd({ animated: true });
 
@@ -116,7 +117,6 @@ function Content({ messages }: { messages: Message[] }) {
                 className="flex-1 p-4"
                 contentContainerStyle={{
                     paddingBottom: 10,
-
                     flexGrow: 1,
                     justifyContent:
                         messages.length === 1 ? "flex-start" : "flex-end",
@@ -131,7 +131,7 @@ function Content({ messages }: { messages: Message[] }) {
                         return (
                             <View
                                 key={message.id}
-                                className={`mb-4 max-w-[80%] rounded-2xl ${
+                                className={`max-w-[80%] rounded-2xl ${
                                     message.isUser
                                         ? "bg-blue-500 self-end"
                                         : "bg-gray-100 self-start"
@@ -139,7 +139,6 @@ function Content({ messages }: { messages: Message[] }) {
                                 style={{ height: maxMessageHeight }}
                             >
                                 <ScrollView
-                                    className="p-3"
                                     showsVerticalScrollIndicator={true}
                                     nestedScrollEnabled={true}
                                 >
@@ -160,7 +159,8 @@ function Content({ messages }: { messages: Message[] }) {
                     return (
                         <View
                             key={message.id}
-                            className={`mb-4 max-w-[80%] rounded-2xl ${
+                            margin={[10, 0, 0, 10]}
+                            className={`max-w-[80%] rounded-2xl ${
                                 message.isUser
                                     ? "bg-blue-500 self-end"
                                     : "bg-gray-100 self-start"
@@ -170,12 +170,12 @@ function Content({ messages }: { messages: Message[] }) {
                                 // Expanded long message - no height constraint
                                 <View className="p-3">
                                     <Text
-                                        fontSize={14}
-                                        className={`text-sm ${
+                                        fontSize={18}
+                                        className={
                                             message.isUser
-                                                ? "text-white"
-                                                : "text-gray-800"
-                                        }`}
+                                                ? "text-white dark:text-gray-100"
+                                                : "text-gray-800 dark:text-gray-100"
+                                        }
                                     >
                                         {message.text}
                                     </Text>
@@ -183,8 +183,9 @@ function Content({ messages }: { messages: Message[] }) {
                             ) : (
                                 // Short message
                                 <Text
-                                    fontSize={14}
-                                    className={`text-sm p-3 ${
+                                    fontSize={18}
+                                    padding={[12, 12, 12, 12]}
+                                    className={`text-sm ${
                                         message.isUser
                                             ? "text-white"
                                             : "text-gray-800"
@@ -202,8 +203,7 @@ function Content({ messages }: { messages: Message[] }) {
 }
 
 function Header() {
-    const { top } = useSafeAreaInsets();
-    return <View style={{ paddingTop: top }} className="" />;
+    return <View height={42} />;
 }
 
 function Footer({
@@ -213,7 +213,6 @@ function Footer({
     handleSendMessage: (message: string) => void;
     focused: boolean;
 }) {
-    const { bottom } = useSafeAreaInsets();
     const [isLoading, setIsLoading] = useState(false);
 
     return (

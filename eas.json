@@ -7,11 +7,7 @@
         "development": {
             "developmentClient": true,
             "distribution": "internal",
-            "ios": {},
-            "android": {
-                "buildType": "apk",
-                "gradleCommand": ":app:assembleDebug --stacktrace --scan"
-            }
+            "android": {}
         },
         "preview": {
             "distribution": "internal"

@@ -2,9 +2,17 @@ import React from "react";
 import {
     Text as Text1,
     View as View1,
-    TouchableOpacity as TouchableOpacity1,
     Dimensions,
+    PixelRatio,
 } from "react-native";
+
+const pixelRatio = PixelRatio.get();
+
+// Calculate DPI (based on mdpi as a baseline)
+const dpi = 160 * pixelRatio;
+
+console.log("Pixel Ratio:", pixelRatio);
+console.log("DPI:", dpi);
 
 export const getScaledValue = (baseInteger: number) => {
     if (typeof baseInteger !== "number") {
@@ -13,7 +21,7 @@ export const getScaledValue = (baseInteger: number) => {
     const { width, height } = Dimensions.get("window");
     const minLogicalDimension = Math.min(width, height);
     // Implicitly, 1 unit equals (minLogicalDimension / 380) dp
-    const dynamicUnitValue = minLogicalDimension / 380; // Implicit normalization base
+    const dynamicUnitValue = minLogicalDimension / dpi; // Implicit normalization base
     const scaledSize = baseInteger * dynamicUnitValue;
     return Math.round(scaledSize);
 };
@@ -23,18 +31,31 @@ export const Text = ({
     fontSize,
     style,
     children,
+    padding,
     className,
     ...rest
 }: {
     fontSize?: number;
     style?: any;
+    padding?: number[];
     children?: any;
     className?: string;
 }) => {
     const scaledFontSize = getScaledValue(fontSize);
     return (
         <Text1
-            style={[{ fontSize: scaledFontSize }, style]}
+            style={[
+                { fontSize: scaledFontSize },
+                style,
+                padding
+                    ? {
+                          paddingTop: getScaledValue(padding[0]),
+                          paddingRight: getScaledValue(padding[1]),
+                          paddingBottom: getScaledValue(padding[2]),
+                          paddingLeft: getScaledValue(padding[3]),
+                      }
+                    : { padding: 0 },
+            ]}
             className={className}
             {...rest}
         >
