@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     View,
     Text,
@@ -10,6 +10,7 @@ import {
     Alert,
     Dimensions,
     Linking,
+    ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -47,9 +48,12 @@ export default function AuthScreen() {
     const [username, setUsername] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
 
-    // Explicitly type the useRef hook for ScrollView
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
+
+    // --- Single line boolean for controlling initial behavior ---
+    const productionLogin = false; // Set to `true` for production behavior, `false` for dev behavior
+    // -------------------------------------------------------------
 
     // --- AsyncStorage Helper Functions ---
     const getRegisteredUsers = async () => {
@@ -80,9 +84,13 @@ export default function AuthScreen() {
     };
     // --- End AsyncStorage Helper Functions ---
 
+    // Scroll functions now refer to the correct page index (0 for splash, 1 for login, 2 for register)
+    const scrollToSplash = () => {
+        scrollViewRef.current?.scrollTo({ x: 0, animated: false }); // No animation for initial load
+    };
+
     const scrollToLogin = () => {
-        // Use 'x' for horizontal scrolling
-        scrollViewRef.current?.scrollTo({ x: 0, animated: true });
+        scrollViewRef.current?.scrollTo({ x: deviceWidth, animated: true });
         setIsLogin(true);
         setErrorMessage("");
         setUsername("");
@@ -90,13 +98,47 @@ export default function AuthScreen() {
     };
 
     const scrollToRegister = () => {
-        // Use 'x' for horizontal scrolling
-        scrollViewRef.current?.scrollTo({ x: deviceWidth, animated: true });
+        scrollViewRef.current?.scrollTo({ x: deviceWidth * 2, animated: true });
         setIsLogin(false);
         setErrorMessage("");
         setEmail("");
         setPassword("");
     };
+
+    // --- useEffect for initial screen logic ---
+    useEffect(() => {
+        const checkAndNavigate = async () => {
+            // Ensure ScrollView is ready by using a timeout and initially scroll to splash
+            scrollToSplash(); // Ensure we are on the splash screen initially
+
+            setTimeout(async () => {
+                const storedUsers = await getRegisteredUsers();
+
+                if (productionLogin) {
+                    // Production behavior: Check registration
+                    if (storedUsers && storedUsers.length > 0) {
+                        console.log(
+                            "Production Login: User(s) already registered. Redirecting to /chat.",
+                        );
+                        router.replace("/chat");
+                    } else {
+                        console.log(
+                            "Production Login: No users registered. Scrolling to Register.",
+                        );
+                        scrollToRegister(); // Scroll to the register page
+                    }
+                } else {
+                    // Dev behavior: Always scroll to login
+                    console.log(
+                        "Development Login: Always scrolling to Login.",
+                    );
+                    scrollToLogin(); // Scroll to the login page
+                }
+            }, 500); // Increased delay slightly for better visual on initial load
+        };
+
+        checkAndNavigate();
+    }, []); // Empty dependency array means this runs only once on component mount
 
     const handleAuth = async () => {
         setErrorMessage("");
@@ -112,16 +154,18 @@ export default function AuthScreen() {
                 console.log("Logged in with:", email);
                 router.push("/chat");
             } else {
-                setErrorMessage("Login failed. Invalid email or password.");
+                setErrorMessage(
+                    "Входът е неуспешен. Невалиден имейл или парола.",
+                );
             }
         } else {
             if (!username || !password) {
-                setErrorMessage("Username and password are required.");
+                setErrorMessage("Потребителско име и парола са задължителни.");
                 return;
             }
             if (password.length < MIN_PASSWORD_LENGTH) {
                 setErrorMessage(
-                    `Password is too short. It must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+                    `Паролата е твърде къса. Трябва да е поне ${MIN_PASSWORD_LENGTH} символа.`,
                 );
                 return;
             }
@@ -131,7 +175,7 @@ export default function AuthScreen() {
             );
             if (usernameExists) {
                 setErrorMessage(
-                    "Username already taken. Please choose another.",
+                    "Потребителското име вече е заето. Моля, изберете друго.",
                 );
                 return;
             }
@@ -142,13 +186,15 @@ export default function AuthScreen() {
             const success = await saveUser(newUser);
             if (success) {
                 Alert.alert(
-                    "Registration Success",
-                    `Welcome ${username}! You can now log in using your email '${newEmail}' with your password.`,
+                    "Успешна регистрация",
+                    `Добре дошли, ${username}! Вече можете да влезете с вашия имейл '${newEmail}' и парола.`,
                 );
                 console.log("Registered and redirected:", newUser);
                 router.push("/chat");
             } else {
-                setErrorMessage("Registration failed. Please try again.");
+                setErrorMessage(
+                    "Регистрацията е неуспешна. Моля, опитайте отново.",
+                );
             }
         }
     };
@@ -157,7 +203,7 @@ export default function AuthScreen() {
         setErrorMessage("");
 
         const authUrl = "https://userz.net/auth/google";
-        const redirectUrl = "bitpazar://auth/callback";
+        const redirectUrl = "bitpazar://auth/callback"; // Make sure your app.json scheme matches this
 
         let result;
         try {
@@ -168,7 +214,7 @@ export default function AuthScreen() {
         } catch (error: any) {
             console.error("WebBrowser error:", error);
             setErrorMessage(
-                "Could not open browser for Google login. Please try again.",
+                "Не може да се отвори браузър за вход с Google. Моля, опитайте отново.",
             );
             return;
         }
@@ -179,26 +225,29 @@ export default function AuthScreen() {
 
             if (token) {
                 Alert.alert(
-                    "Google Login Success (Simulated)",
-                    "Successfully received data and redirected!",
+                    "Успешен вход с Google (симулиран)",
+                    "Данните са получени успешно и пренасочени!",
                 );
                 console.log("Google Auth Token (Simulated):", token);
                 router.push("/chat");
             } else {
                 setErrorMessage(
-                    "Google Login failed: No token received in redirect URL.",
+                    "Входът с Google е неуспешен: Не е получен токен в URL адреса за пренасочване.",
                 );
             }
         } else if (result.type === "cancel") {
-            setErrorMessage("Google Login cancelled by user.");
+            setErrorMessage("Входът с Google е анулиран от потребителя.");
         } else if (result.type === "dismiss") {
-            setErrorMessage("Google Login browser dismissed by user.");
+            setErrorMessage(
+                "Браузърът за вход с Google е затворен от потребителя.",
+            );
         } else {
-            setErrorMessage("Google Login failed due to an unexpected error.");
+            setErrorMessage(
+                "Входът с Google е неуспешен поради неочаквана грешка.",
+            );
         }
     };
 
-    // --- NEW BUTTON HANDLERS ---
     const handleDirectChatRedirect = () => {
         console.log(
             "Attempting direct internal redirect to /chat using router.push",
@@ -207,7 +256,7 @@ export default function AuthScreen() {
     };
 
     const handleDeepLinkChat = async () => {
-        const deepLinkUrl = "bitpazar://chat";
+        const deepLinkUrl = "bitpazar://chat"; // Make sure your app.json scheme matches this
         console.log("Attempting to open deep link:", deepLinkUrl);
         try {
             const supported = await Linking.canOpenURL(deepLinkUrl);
@@ -215,8 +264,8 @@ export default function AuthScreen() {
                 await Linking.openURL(deepLinkUrl);
             } else {
                 Alert.alert(
-                    "Deep Link Not Supported",
-                    `Cannot open URL: ${deepLinkUrl}. Ensure 'myapp' scheme is configured in app.json and app is rebuilt.`,
+                    "Deep Link не се поддържа",
+                    `Не може да се отвори URL: ${deepLinkUrl}. Уверете се, че схемата 'bitpazar' е конфигурирана в app.json и приложението е самостоятелна компилация.`,
                 );
                 console.error(
                     "Deep link not supported or scheme not configured:",
@@ -225,37 +274,59 @@ export default function AuthScreen() {
             }
         } catch (error: any) {
             Alert.alert(
-                "Deep Link Error",
-                `Failed to open deep link: ${error.message}`,
+                "Грешка при Deep Link",
+                `Неуспешно отваряне на Deep Link: ${error.message}`,
             );
             console.error("Error opening deep link:", error);
         }
     };
-
+    const textInputStyle =
+        "w-full p-3 mb-4 border border-gray-900 dark:border-gray-100 dark:text-white rounded-md text-base";
     return (
         <View className="flex-1 bg-gray-200 dark:bg-gray-900">
             <StatusBar style="auto" />
+
+            {/* Static Image at the top */}
+            <View className="flex flex-col items-center justify-center pt-20">
+                <Image
+                    style={{ width: 150, height: 150 }}
+                    source={require("../../assets/icon.png")}
+                    resizeMode="cover"
+                />
+            </View>
+
             <ScrollView
                 ref={scrollViewRef}
-                horizontal={true} // Enable horizontal scrolling
-                scrollEnabled={false}
+                horizontal={true}
                 pagingEnabled={true}
-                showsHorizontalScrollIndicator={false} // Hide vertical scroll indicator
+                scrollEnabled={false} // Disable manual user scrolling
+                showsHorizontalScrollIndicator={false}
                 className="flex-1"
-                contentContainerStyle={{ flexDirection: "row" }} // Arrange sections next to each other
+                contentContainerStyle={{ flexDirection: "row" }}
             >
-                {/* Login Section */}
+                {/* Splash Screen Section (first page) */}
                 <View
-                    className="flex-1 items-center justify-center"
+                    className="flex-1 items-center justify-start py-10" // Adjusted padding to fit below static image
+                    style={{ height: deviceHeight, width: deviceWidth }}
+                >
+                    <ActivityIndicator size="large" color="#0000ff" />
+                    <Text className="mt-4 text-gray-800 dark:text-gray-200 text-lg">
+                        Проверка на състоянието за вход...
+                    </Text>
+                </View>
+
+                {/* Login Section (second page) */}
+                <View
+                    className="flex-1 items-center justify-start py-10" // Adjusted padding
                     style={{ height: deviceHeight, width: deviceWidth }}
                 >
                     <View className="w-full max-w-sm  p-6 rounded-lg shadow-md">
                         <Text className="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-200">
-                            Login
+                            Вход
                         </Text>
                         <TextInput
-                            className="w-full p-3 mb-4 border border-gray-300 rounded-md text-base"
-                            placeholder="Email (e.g., your_username@app.com)"
+                            className={textInputStyle}
+                            placeholder="Имейл (напр. вашето_потребителско_име@app.com)"
                             value={email}
                             onChangeText={setEmail}
                             keyboardType="email-address"
@@ -264,8 +335,8 @@ export default function AuthScreen() {
                             textContentType="none"
                         />
                         <TextInput
-                            className="w-full p-3 mb-6 border border-gray-300 rounded-md text-base"
-                            placeholder="Password"
+                            className={textInputStyle}
+                            placeholder="Парола"
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry
@@ -284,7 +355,7 @@ export default function AuthScreen() {
                             onPress={handleAuth}
                         >
                             <Text className="text-white text-center font-semibold text-lg">
-                                Login
+                                Вход
                             </Text>
                         </TouchableOpacity>
 
@@ -299,17 +370,16 @@ export default function AuthScreen() {
                                 className="w-6 h-6 mr-2"
                             />
                             <Text className="text-white text-center font-semibold text-lg">
-                                Login with Google
+                                Вход с Google
                             </Text>
                         </TouchableOpacity>
 
-                        {/* --- NEW BUTTONS ADDED HERE --- */}
                         <TouchableOpacity
                             className="w-full bg-green-500 p-3 rounded-md mb-4"
                             onPress={handleDirectChatRedirect}
                         >
                             <Text className="text-white text-center font-semibold text-lg">
-                                Redirect to /chat (Internal)
+                                Пренасочване към /chat (вътрешно)
                             </Text>
                         </TouchableOpacity>
 
@@ -318,32 +388,32 @@ export default function AuthScreen() {
                             onPress={handleDeepLinkChat}
                         >
                             <Text className="text-white text-center font-semibold text-lg">
-                                Open myapp://chat (Deep Link)
+                                Отваряне bitpazar://chat (Deep Link)
                             </Text>
                         </TouchableOpacity>
-                        {/* --- END NEW BUTTONS --- */}
 
+                        {/* Bidirectional navigation - to Register */}
                         <TouchableOpacity onPress={scrollToRegister}>
                             <Text className="text-blue-600 text-center text-base">
-                                Need an account? Register
+                                Нямате профил? Регистрирайте се
                             </Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                {/* Register Section */}
+                {/* Register Section (third page) */}
                 <View
-                    className="flex-1 items-center justify-center"
+                    className="flex-1 items-center justify-start py-10" // Adjusted padding
                     style={{ height: deviceHeight, width: deviceWidth }}
                 >
-                    <View className="w-full max-w-sm bg-white p-6 rounded-lg shadow-md">
-                        <Text className="text-3xl font-bold text-center mb-6 text-gray-200 dark:text-gray-800">
-                            Register
+                    <View className="w-full max-w-sm  p-6 rounded-lg shadow-md">
+                        <Text className="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-200">
+                            Регистрация
                         </Text>
 
                         <TextInput
-                            className="w-full p-3 mb-4 border border-gray-300 rounded-md text-base"
-                            placeholder="Username"
+                            className={textInputStyle}
+                            placeholder="Потребителско име"
                             value={username}
                             onChangeText={setUsername}
                             autoCapitalize="none"
@@ -352,8 +422,8 @@ export default function AuthScreen() {
                         />
 
                         <TextInput
-                            className="w-full p-3 mb-6 border border-gray-300 rounded-md text-base"
-                            placeholder={`Password (min ${MIN_PASSWORD_LENGTH} characters)`}
+                            className={textInputStyle}
+                            placeholder={`Парола (мин. ${MIN_PASSWORD_LENGTH} символа)`}
                             value={password}
                             onChangeText={setPassword}
                             secureTextEntry
@@ -372,13 +442,14 @@ export default function AuthScreen() {
                             onPress={handleAuth}
                         >
                             <Text className="text-white text-center font-bold">
-                                Register
+                                Регистриране
                             </Text>
                         </TouchableOpacity>
 
+                        {/* Bidirectional navigation - to Login */}
                         <TouchableOpacity onPress={scrollToLogin}>
                             <Text className="text-blue-600 text-center text-base">
-                                Already have an account? Login
+                                Вече имате профил? Вход
                             </Text>
                         </TouchableOpacity>
                     </View>
