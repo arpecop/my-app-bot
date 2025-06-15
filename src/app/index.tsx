@@ -11,7 +11,7 @@ import {
   Dimensions,
   Linking,
   ActivityIndicator,
-  StyleSheet, // Import StyleSheet for absolute positioning
+  StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -67,7 +67,7 @@ export default function AuthScreen() {
   const router = useRouter();
 
   // --- Single line boolean for controlling initial behavior ---
-  const productionLogin = false; // Set to `false` for development
+  const productionLogin = true; // <--- MAKE SURE THIS IS SET TO `false` FOR DEVELOPMENT
   // -------------------------------------------------------------
 
   // --- AsyncStorage Helper Functions ---
@@ -152,6 +152,20 @@ export default function AuthScreen() {
     });
   };
 
+  // --- New Function to reset AsyncStorage ---
+  const handleResetAsyncStorage = async () => {
+    try {
+      await AsyncStorage.clear();
+      Alert.alert("AsyncStorage Reset", "Всички запазени данни са изтрити.");
+      console.log("AsyncStorage has been cleared.");
+      // Optionally, navigate back to splash or login after reset
+      scrollToSplashHorizontal(); // Go back to splash to re-evaluate login state
+    } catch (e) {
+      console.error("Грешка при изтриване на AsyncStorage:", e);
+      displayErrorPopup("Грешка при изтриване на данни.");
+    }
+  };
+
   // --- useEffect for initial screen logic ---
   useEffect(() => {
     const checkAndNavigate = async () => {
@@ -163,7 +177,8 @@ export default function AuthScreen() {
         const storedUsers = await getRegisteredUsers();
 
         if (productionLogin) {
-          // Production behavior: Check registration
+          // Production behavior: If registered users exist, redirect to chat.
+          // Otherwise (as per new instruction), default to Login screen.
           if (storedUsers && storedUsers.length > 0) {
             console.log(
               "Production Login: User(s) already registered. Redirecting to /chat.",
@@ -171,16 +186,16 @@ export default function AuthScreen() {
             router.replace("/chat");
           } else {
             console.log(
-              "Production Login: No users registered. Scrolling to Register.",
+              "Production Login: No users registered. Defaulting to Login screen.",
             );
-            scrollToRegisterHorizontal(); // Scroll to the register page
+            scrollToLoginHorizontal(); // <--- ALWAYS default to Login in production if no auto-redirect
           }
         } else {
           // Dev behavior: Always scroll to login
           console.log("Development Login: Always scrolling to Login.");
-          scrollToLoginHorizontal(); // Scroll to the login page
+          scrollToLoginHorizontal();
         }
-      }, 500); // Increased delay slightly for better visual on initial load
+      }, 500);
     };
 
     checkAndNavigate();
@@ -249,8 +264,8 @@ export default function AuthScreen() {
     setSsoDebugLog("Иницииране на SSO вход с Google...");
 
     const authUrl = "https://userz.net/auth/google";
-    const redirectUrl = "bitpazar://auth/callback"; // Make sure your app.json scheme matches this
-    const stateParam = generateRandomId(); // Generate a random ID for state
+    const redirectUrl = "bitpazar://auth/callback";
+    const stateParam = generateRandomId();
 
     let result;
     try {
@@ -260,11 +275,12 @@ export default function AuthScreen() {
           `\nИзпращане на заявка до Google... (state: ${stateParam.substring(0, 5)}...)`,
       );
       result = await WebBrowser.openAuthSessionAsync(
-        `${authUrl}?state=${stateParam}`, // Append state parameter
+        `${authUrl}?state=${stateParam}`,
         redirectUrl,
       );
     } catch (error: any) {
       console.error("WebBrowser error:", error);
+      // This is a hard error (e.g., browser not found, network issue before opening)
       displayErrorPopup(
         "Не може да се отвори браузър за вход с Google. Моля, опитайте отново.",
       );
@@ -275,7 +291,7 @@ export default function AuthScreen() {
     if (result.type === "success") {
       const urlParams = parseUrlParams(result.url);
       const token = urlParams.token || "FAKE_TOKEN";
-      const receivedState = urlParams.state; // Get the state returned from the URL
+      const receivedState = urlParams.state;
 
       if (receivedState !== stateParam) {
         displayErrorPopup(
@@ -293,7 +309,6 @@ export default function AuthScreen() {
             prev +
             "\nCallback URL получен. Симулация на извличане на данни (1 сек)...",
         );
-        // Simulate 1-second iteration fetching "callback"
         setTimeout(() => {
           Alert.alert(
             "Успешен вход с Google (симулиран)",
@@ -313,14 +328,13 @@ export default function AuthScreen() {
         setSsoDebugLog((prev) => prev + "\nГрешка: Не е получен токен.");
       }
     } else if (result.type === "cancel") {
-      displayErrorPopup("Входът с Google е анулиран от потребителя.");
       setSsoDebugLog((prev) => prev + "\nSSO анулиран от потребителя.");
+      // Do NOT show error popup for user cancellation
     } else if (result.type === "dismiss") {
-      displayErrorPopup(
-        "Браузърът за вход с Google е затворен от потребителя.",
-      );
       setSsoDebugLog((prev) => prev + "\nSSO браузър затворен от потребителя.");
+      // Do NOT show error popup for user dismissal
     } else {
+      // Any other unexpected result type that's not success, cancel, or dismiss
       displayErrorPopup(
         "Входът с Google е неуспешен поради неочаквана грешка.",
       );
@@ -338,7 +352,7 @@ export default function AuthScreen() {
   };
 
   const handleDeepLinkChat = async () => {
-    const deepLinkUrl = "bitpazar://chat"; // Make sure your app.json scheme matches this
+    const deepLinkUrl = "bitpazar://chat";
     console.log("Attempting to open deep link:", deepLinkUrl);
     try {
       const supported = await Linking.canOpenURL(deepLinkUrl);
@@ -364,6 +378,11 @@ export default function AuthScreen() {
   };
   const textInputStyle =
     "w-full p-3 mb-4 border border-gray-900 dark:border-gray-100 dark:text-white rounded-md text-base";
+
+  // Smaller style for debug buttons
+  const debugButtonStyle = "w-full bg-gray-500 p-2 rounded-md mb-2";
+  const debugButtonTextStyle = "text-white text-center font-semibold text-sm";
+
   return (
     <View className="flex-1 bg-gray-200 dark:bg-gray-900">
       <StatusBar style="auto" />
@@ -381,20 +400,20 @@ export default function AuthScreen() {
       <ScrollView
         ref={verticalScrollViewRef}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={false} // Disable manual user vertical scrolling
+        scrollEnabled={false}
         contentContainerStyle={{ flexDirection: "column" }}
         className="flex-1"
       >
         {/* Container for Auth Screens (Splash, Login, Register) - First Vertical Row */}
         <View
           className="flex-1"
-          style={{ height: deviceHeight, width: deviceWidth }} // Ensure it takes full screen height vertically
+          style={{ height: deviceHeight, width: deviceWidth }}
         >
           <ScrollView
             ref={horizontalScrollViewRef}
             horizontal={true}
             pagingEnabled={true}
-            scrollEnabled={false} // Disable manual user horizontal scrolling
+            scrollEnabled={false}
             showsHorizontalScrollIndicator={false}
             className="flex-1"
             contentContainerStyle={{ flexDirection: "row" }}
@@ -463,23 +482,37 @@ export default function AuthScreen() {
                   </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                  className="w-full bg-green-500 p-3 rounded-md mb-4"
-                  onPress={handleDirectChatRedirect}
-                >
-                  <Text className="text-white text-center font-semibold text-lg">
-                    Пренасочване към /chat (вътрешно)
-                  </Text>
-                </TouchableOpacity>
+                {/* Debug Buttons (visible only when productionLogin is false) */}
+                {!productionLogin && (
+                  <>
+                    <TouchableOpacity
+                      className={debugButtonStyle + " bg-green-500"}
+                      onPress={handleDirectChatRedirect}
+                    >
+                      <Text className={debugButtonTextStyle}>
+                        Пренасочване към /chat (вътрешно)
+                      </Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                  className="w-full bg-purple-500 p-3 rounded-md mb-4"
-                  onPress={handleDeepLinkChat}
-                >
-                  <Text className="text-white text-center font-semibold text-lg">
-                    Отваряне bitpazar://chat (Deep Link)
-                  </Text>
-                </TouchableOpacity>
+                    <TouchableOpacity
+                      className={debugButtonStyle + " bg-purple-500"}
+                      onPress={handleDeepLinkChat}
+                    >
+                      <Text className={debugButtonTextStyle}>
+                        Отваряне bitpazar://chat (Deep Link)
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      className={debugButtonStyle + " bg-red-400"}
+                      onPress={handleResetAsyncStorage}
+                    >
+                      <Text className={debugButtonTextStyle}>
+                        Нулиране AsyncStorage
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
 
                 {/* Navigation to Register */}
                 <TouchableOpacity onPress={scrollToRegisterHorizontal}>
@@ -535,6 +568,38 @@ export default function AuthScreen() {
                   </Text>
                 </TouchableOpacity>
 
+                {/* Debug Buttons (visible only when productionLogin is false) */}
+                {!productionLogin && (
+                  <>
+                    <TouchableOpacity
+                      className={debugButtonStyle + " bg-green-500"}
+                      onPress={handleDirectChatRedirect}
+                    >
+                      <Text className={debugButtonTextStyle}>
+                        Пренасочване към /chat (вътрешно)
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      className={debugButtonStyle + " bg-purple-500"}
+                      onPress={handleDeepLinkChat}
+                    >
+                      <Text className={debugButtonTextStyle}>
+                        Отваряне bitpazar://chat (Deep Link)
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      className={debugButtonStyle + " bg-red-400"}
+                      onPress={handleResetAsyncStorage}
+                    >
+                      <Text className={debugButtonTextStyle}>
+                        Нулиране AsyncStorage
+                      </Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+
                 {/* Navigation to Login */}
                 <TouchableOpacity onPress={scrollToLoginHorizontal}>
                   <Text className="text-blue-600 text-center text-base mb-2">
@@ -554,12 +619,10 @@ export default function AuthScreen() {
 
         {/* Privacy Policy Section - Second Vertical Row */}
         <View
-          className="flex-1 items-center justify-start py-10" // Removed background colors
+          className="flex-1 items-center justify-start py-10"
           style={{ height: deviceHeight, width: deviceWidth }}
         >
           <View className="w-full max-w-sm p-6 rounded-lg shadow-md">
-            {" "}
-            {/* Removed bg-white dark:bg-gray-700 */}
             <Text className="text-3xl font-bold text-center mb-6 text-gray-800 dark:text-gray-200">
               Политика за поверителност
             </Text>
@@ -579,6 +642,7 @@ export default function AuthScreen() {
               С използването на приложението вие се съгласявате със събирането и
               използването на информация в съответствие с тази политика.
             </Text>
+
             {/* Navigation back to Auth Section */}
             <TouchableOpacity
               className="w-full bg-blue-600 p-3 rounded-md"
@@ -600,7 +664,7 @@ export default function AuthScreen() {
           </Text>
           <ScrollView className="max-h-24">
             <Text className="text-white dark:text-gray-900 text-sm">
-              {ssoDebugLog} x
+              {ssoDebugLog}
             </Text>
           </ScrollView>
         </View>
@@ -636,9 +700,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)", // Semi-transparent black background
-    justifyContent: "center", // Center the popup vertically
-    alignItems: "center", // Center the popup horizontally
-    zIndex: 1000, // Ensure it's on top of other content
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
   },
 });
