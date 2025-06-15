@@ -8,7 +8,11 @@
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.rudixlab.bitpazar"
     },
-    "plugins": ["expo-router", "expo-web-browser", "expo-splash-screen"],
+    "plugins": [
+      "expo-router",
+      "expo-web-browser",
+      "expo-splash-screen"
+    ],
     "name": "bitpazar",
     "slug": "bitpazar",
     "splash": {
@@ -27,7 +31,10 @@
       }
     },
     "ios": {
-      "bundleIdentifier": "com.rudixlab.bitpazar"
+      "bundleIdentifier": "com.rudixlab.bitpazar",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "web": {
       "bundler": "metro"
